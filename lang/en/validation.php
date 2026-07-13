@@ -45,6 +45,13 @@ return [
     'timezone' => 'The :attribute must be a valid timezone.',
     'unique' => 'The :attribute has already been taken.',
     'url' => 'The :attribute format is invalid.',
+    'password' => [
+        'letters' => 'The :attribute field must contain at least one letter.',
+        'mixed' => 'The :attribute field must contain both uppercase and lowercase letters.',
+        'numbers' => 'The :attribute field must contain at least one number.',
+        'symbols' => 'The :attribute field must contain at least one symbol.',
+        'uncompromised' => 'The given :attribute has appeared in a data leak. Please choose a different password.',
+    ],
 
     'attributes' => [
 
@@ -61,6 +68,8 @@ return [
         'birth_date' => 'Birth Date',
 
         'code' => 'Verification Code',
+        'reset_token' => 'reset password token',
+
 
     ],
 

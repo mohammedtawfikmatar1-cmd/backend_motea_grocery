@@ -35,15 +35,37 @@ class VerificationCodeNotification extends Notification
      * Build the mail representation of the notification.
      */
     public function toMail(object $notifiable): MailMessage
-    {
-        return (new MailMessage)
-            ->subject($this->subject())
-            ->line(__('messages.verification_email_intro'))
-            ->line(__('messages.verification_email_code', ['code' => $this->code]))
-            ->line(__('messages.verification_email_expires_at', [
-                'expires_at' => $this->expiresAt->toDateTimeString(),
-            ]));
-    }
+{
+    return (new MailMessage)
+        ->subject($this->subject())
+        ->view('emails.sendCode', [
+            'title' => $this->subject(),
+            'introMessage' => __('messages.verification_email_intro'), // تم تغيير الاسم هنا
+            'code' => $this->code,
+            'expiresAt' => $this->expiresAt->format('Y-m-d H:i'),
+        ]);
+}
+//     public function toMail(object $notifiable): MailMessage
+// {
+//     return (new MailMessage)
+//         ->subject($this->subject())
+//         ->view('emails.sendCode', [
+//             'title' => $this->subject(),
+//             'message' => __('messages.verification_email_intro'),
+//             'code' => $this->code,
+//             'expiresAt' => $this->expiresAt->format('Y-m-d H:i'),
+//         ]);
+// }
+    // public function toMail(object $notifiable): MailMessage
+    // {
+    //     return (new MailMessage)
+    //         ->subject($this->subject())
+    //         ->line(__('messages.verification_email_intro'))
+    //         ->line(__('messages.verification_email_code', ['code' => $this->code]))
+    //         ->line(__('messages.verification_email_expires_at', [
+    //             'expires_at' => $this->expiresAt->toDateTimeString(),
+    //         ]));
+    // }
 
     /**
      * Get the email subject for the verification type.

@@ -3,9 +3,8 @@
 namespace App\Http\Requests\Auth;
 
 use App\Http\Requests\ApiFormRequest;
-use Illuminate\Validation\Rules\Password;
 
-class ResetPasswordRequest extends ApiFormRequest
+class VerifyResetPasswordCodeRequest extends ApiFormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -18,24 +17,27 @@ class ResetPasswordRequest extends ApiFormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, array<int, mixed>>
+     * @return array<string, array<int, string>>
      */
     public function rules(): array
     {
         return [
-            'reset_token' => [
+            'email' => [
                 'required',
-                'string',
+                'email',
             ],
-
-            'password' => [
+            'code' => [
                 'required',
-                'confirmed',
-                Password::min(8)
-                    ->letters()
-                    ->mixedCase()
-                    ->numbers(),
+                'digits:'.$this->codeLength(),
             ],
         ];
+    }
+
+    /**
+     * Get the configured verification code length.
+     */
+    private function codeLength(): int
+    {
+        return (int) config('verification.code_length');
     }
 }

@@ -14,10 +14,11 @@ return [
 
     // Authentication
     'register_success' => 'Account created successfully.',
+    'email_registration_success' => 'Account created successfully, a verification code has been sent to your email.',
     'login_success' => 'Logged in successfully.',
     'logout_success' => 'Logged out successfully.',
     'password_reset_success' => 'Password reset successfully.',
-
+    'password_reset_code_required' => 'The password reset code must be verified first.',
     // User
     'user_not_found' => 'User not found.',
     'profile_updated' => 'Profile updated successfully.',
@@ -35,4 +36,8 @@ return [
     'verification_email_intro' => 'Use the following code to complete your verification.',
     'verification_email_code' => 'Verification code: :code',
     'verification_email_expires_at' => 'This code expires at :expires_at.',
+
+    'invalid_reset_token' => 'The reset password token is invalid.',
+
+    'reset_token_expired' => 'The reset password token has expired.',
 ];

@@ -8,6 +8,7 @@ Route::name('api.v1.')->group(function (): void {
         Route::post('register', 'register')->name('register');
         Route::post('login', 'login')->name('login');
         Route::post('forgot-password', 'forgotPassword')->name('forgot-password');
+        Route::post('verify-reset-password-code', 'verifyResetPasswordCode')->name('verify-reset-password-code');
         Route::post('reset-password', 'resetPassword')->name('reset-password');
         Route::post('verify-email', 'verifyEmail')->name('verify-email');
         Route::post('verification-code/resend', 'resendVerificationCode')->name('verification-code.resend');

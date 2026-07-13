@@ -9,8 +9,10 @@ use App\Http\Requests\Auth\LogoutRequest;
 use App\Http\Requests\Auth\RegisterUserRequest;
 use App\Http\Requests\Auth\ResendVerificationCodeRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
+use App\Http\Requests\Auth\VerifyResetPasswordCodeRequest;
 use App\Http\Requests\Auth\VerifyEmailRequest;
 use App\Http\Resources\AuthResource;
+use App\Http\Resources\ResetPasswordTokenResource;
 use App\Models\User;
 use App\Services\AuthService;
 use Closure;
@@ -35,11 +37,9 @@ class AuthController extends Controller
      */
     public function register(RegisterUserRequest $request): JsonResponse
     {
-        return $this->handleApi(
-            fn (): JsonResponse => ApiResponse::created(
-                new AuthResource($this->authService->register($request->validated())),
-                __('messages.register_success')
-            )
+        return ApiResponse::created(
+            new AuthResource($this->authService->register($request->validated())),
+            __('messages.email_registration_success')
         );
     }
 
@@ -48,11 +48,9 @@ class AuthController extends Controller
      */
     public function login(LoginUserRequest $request): JsonResponse
     {
-        return $this->handleApi(
-            fn (): JsonResponse => ApiResponse::success(
-                new AuthResource($this->authService->login($request->validated())),
-                __('messages.login_success')
-            )
+        return  ApiResponse::success(
+            new AuthResource($this->authService->login($request->validated())),
+            __('messages.login_success')
         );
     }
 
@@ -63,16 +61,10 @@ class AuthController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-
-        return $this->handleApi(
-            function () use ($user): JsonResponse {
-                $this->authService->logout($user);
-
-                return ApiResponse::success(
-                    null,
-                    __('messages.logout_success')
-                );
-            }
+        $this->authService->logout($user);
+        return ApiResponse::success(
+            null,
+            __('messages.logout_success')
         );
     }
 
@@ -81,41 +73,49 @@ class AuthController extends Controller
      */
     public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
     {
-        return $this->handleApi(
-            fn (): JsonResponse => ApiResponse::success(
-                new AuthResource($this->authService->forgotPassword($request->validated())),
-                __('messages.verification_code_sent')
-            )
+        return  ApiResponse::success(
+            new AuthResource($this->authService->forgotPassword($request->validated())),
+            __('messages.verification_code_sent')
+        );
+    }
+    public function verifyResetPasswordCode(VerifyResetPasswordCodeRequest $request): JsonResponse
+    {
+        return ApiResponse::success(
+            new ResetPasswordTokenResource(
+                $this->authService->verifyResetPasswordCode($request->validated())
+            ),
+            __('messages.verification_success')
         );
     }
 
     /**
      * Reset a user's password.
      */
-    public function resetPassword(ResetPasswordRequest $request): JsonResponse
+    public function resetPassword(ResetPasswordRequest $request)
     {
-        return $this->handleApi(
-            function () use ($request): JsonResponse {
-                $this->authService->resetPassword($request->validated());
-
-                return ApiResponse::success(
-                    null,
-                    __('messages.password_reset_success')
-                );
-            }
+        $result = $this->authService->resetPassword($request->validated());
+        return ApiResponse::success(
+            null,
+            __('messages.password_reset_success'),
+            
         );
     }
 
     /**
      * Verify a user's email address.
      */
+    public function verifyresetPassword(VerifyEmailRequest $request): JsonResponse
+    {
+        return ApiResponse::success(
+            new AuthResource($this->authService->verifyEmail($request->validated())),
+            __('messages.verification_success')
+        );
+    }
     public function verifyEmail(VerifyEmailRequest $request): JsonResponse
     {
-        return $this->handleApi(
-            fn (): JsonResponse => ApiResponse::success(
-                new AuthResource($this->authService->verifyEmail($request->validated())),
-                __('messages.verification_success')
-            )
+        return ApiResponse::success(
+            new AuthResource($this->authService->verifyEmail($request->validated())),
+            __('messages.verification_success')
         );
     }
 
@@ -124,41 +124,9 @@ class AuthController extends Controller
      */
     public function resendVerificationCode(ResendVerificationCodeRequest $request): JsonResponse
     {
-        return $this->handleApi(
-            fn (): JsonResponse => ApiResponse::success(
-                new AuthResource($this->authService->resendVerificationCode($request->validated())),
-                __('messages.verification_code_sent')
-            )
+        return ApiResponse::success(
+            new AuthResource($this->authService->resendVerificationCode($request->validated())),
+            __('messages.verification_code_sent')
         );
-    }
-
-    /**
-     * Execute an API action and convert service exceptions into unified API responses.
-     *
-     * @param  Closure(): JsonResponse  $action
-     */
-    private function handleApi(Closure $action): JsonResponse
-    {
-        try {
-            return $action();
-        } catch (ValidationException $exception) {
-            return ApiResponse::validation($exception->errors());
-        } catch (AuthenticationException $exception) {
-            return ApiResponse::unauthenticated($exception->getMessage());
-        } catch (AuthorizationException $exception) {
-            return ApiResponse::forbidden($exception->getMessage() ?: null);
-        } catch (InvalidArgumentException $exception) {
-            report($exception);
-
-            return ApiResponse::serverError(
-                app()->hasDebugModeEnabled() ? $exception->getMessage() : null
-            );
-        } catch (Throwable $exception) {
-            report($exception);
-
-            return ApiResponse::serverError(
-                app()->hasDebugModeEnabled() ? $exception->getMessage() : null
-            );
-        }
     }
 }

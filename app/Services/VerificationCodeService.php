@@ -131,7 +131,7 @@ class VerificationCodeService
     /**
      * Increment the attempts counter for a verification code.
      */
-    public function incrementAttempts(VerificationCode $verificationCode): VerificationCode
+    private function incrementAttempts(VerificationCode $verificationCode): VerificationCode
     {
         $verificationCode->increment('attempts');
 
@@ -141,7 +141,7 @@ class VerificationCodeService
     /**
      * Mark a verification code as verified.
      */
-    public function markAsVerified(VerificationCode $verificationCode): VerificationCode
+    private function markAsVerified(VerificationCode $verificationCode): VerificationCode
     {
         $verificationCode->forceFill([
             'verified_at' => Carbon::now(),

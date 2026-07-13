@@ -14,10 +14,11 @@ return [
 
     // Authentication
     'register_success' => 'تم إنشاء الحساب بنجاح.',
+    'email_registration_success' => 'تم إنشاء الحساب بنجاح، وقد تم إرسال رمز التحقق إلى بريدك الإلكتروني.',
     'login_success' => 'تم تسجيل الدخول بنجاح.',
     'logout_success' => 'تم تسجيل الخروج بنجاح.',
     'password_reset_success' => 'تمت إعادة تعيين كلمة المرور بنجاح.',
-
+    'password_reset_code_required' => 'يجب التحقق من رمز إعادة تعيين كلمة المرور أولاً.',
     // User
     'user_not_found' => 'المستخدم غير موجود.',
     'profile_updated' => 'تم تحديث الملف الشخصي.',
@@ -35,4 +36,9 @@ return [
     'verification_email_intro' => 'استخدم الرمز التالي لإكمال عملية التحقق.',
     'verification_email_code' => 'رمز التحقق: :code',
     'verification_email_expires_at' => 'تنتهي صلاحية هذا الرمز في: :expires_at.',
+
+
+    'invalid_reset_token' => 'رمز إعادة تعيين كلمة المرور غير صالح.',
+
+    'reset_token_expired' => 'انتهت صلاحية رمز إعادة تعيين كلمة المرور.',
 ];

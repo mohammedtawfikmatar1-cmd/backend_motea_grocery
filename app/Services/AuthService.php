@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Str;
 use App\Enums\VerificationType;
 use App\Models\User;
 use Illuminate\Auth\AuthenticationException;
@@ -12,6 +13,7 @@ use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\NewAccessToken;
+use Laravel\Sanctum\PersonalAccessToken;
 use Random\RandomException;
 
 class AuthService
@@ -132,21 +134,94 @@ class AuthService
      *
      * @throws ValidationException
      */
-    public function resetPassword(array $data): void
+    public function resetPassword(array $data): array
     {
-        $user = $this->findUserOrFail((string) $data['email']);
+        $accessToken = PersonalAccessToken::findToken(
+            (string) $data['reset_token']
+        );
 
-        $this->database->transaction(function () use ($user, $data): void {
-            $this->verificationCodes->verify($user, (string) $data['code'], VerificationType::PASSWORD_RESET);
+        if (
+            ! $accessToken ||
+            ! $accessToken->can('password:reset')
+        ) {
+            throw ValidationException::withMessages([
+                'reset_token' => __('messages.invalid_reset_token'),
+            ]);
+        }
 
+        if (
+            $accessToken->expires_at &&
+            $accessToken->expires_at->isPast()
+        ) {
+            $accessToken->delete();
+
+            throw ValidationException::withMessages([
+                'reset_token' => __('messages.reset_token_expired'),
+            ]);
+        }
+
+        /** @var User $user */
+        $user = $accessToken->tokenable;
+
+        return $this->database->transaction(function () use ($user, $accessToken, $data): array {
+
+            // تحديث كلمة المرور
             $user->forceFill([
                 'password' => $this->hasher->make((string) $data['password']),
             ])->save();
 
+            // تسجيل خروج جميع الأجهزة
             $user->tokens()->delete();
+
+            // حذف أكواد التحقق
+            $this->verificationCodes->invalidate(
+                $user,
+                VerificationType::PASSWORD_RESET
+            );
+
+            // حذف Token إعادة التعيين
+            $accessToken->delete();
+
+            // إنشاء Access Token جديد للمستخدم
+            $token = $this->createAccessToken($user);
+
+            return [
+                'user' => $user->fresh(),
+                'access_token' => $token->plainTextToken,
+                'token_type' => 'Bearer',
+            ];
         });
     }
+    public function verifyResetPasswordCode(array $data): array
+    {
+        $user = $this->findUserOrFail((string) $data['email']);
 
+        return $this->database->transaction(function () use ($user, $data): array {
+
+            $this->verificationCodes->verify(
+                $user,
+                (string) $data['code'],
+                VerificationType::PASSWORD_RESET
+            );
+
+            // حذف أي Token قديم لإعادة التعيين
+            $user->tokens()
+                ->where('name', 'password-reset')
+                ->delete();
+
+            // إنشاء Token صالح لمدة 5 دقائق
+            $token = $user->createToken(
+                'password-reset',
+                ['password:reset'],
+                now()->addMinutes(5)
+            );
+
+            return [
+                'reset_token' => $token->plainTextToken,
+                'expires_in' => 300,
+            ];
+        });
+    }
     /**
      * Verify a user's email address using an email verification code.
      *
@@ -154,20 +229,27 @@ class AuthService
      *
      * @throws ValidationException
      */
-    public function verifyEmail(array $data): User
+    public function verifyEmail(array $data): array
     {
         $user = $this->findUserOrFail((string) $data['email']);
 
-        return $this->database->transaction(function () use ($user, $data): User {
+        return $this->database->transaction(function () use ($user, $data): array {
             $this->verificationCodes->verify($user, (string) $data['code'], VerificationType::EMAIL);
 
             if ($user->email_verified_at === null) {
-                $user->forceFill([
+                $user->Fill([
+                    'is_approved' => true,
                     'email_verified_at' => Carbon::now(),
                 ])->save();
             }
 
-            return $user->refresh();
+            $token = $this->createAccessToken($user);
+
+            return [
+                'user' => $user,
+                'access_token' => $token->plainTextToken,
+                'token_type' => 'Bearer',
+            ];
         });
     }
 

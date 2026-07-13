@@ -35,7 +35,6 @@ class AuthResource extends JsonResource
     private function user(User $user): array
     {
         return [
-            'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
             'phone' => $user->phone,
@@ -44,6 +43,7 @@ class AuthResource extends JsonResource
             'email_verified_at' => $user->email_verified_at?->toDateTimeString(),
             'phone_verified_at' => $user->phone_verified_at?->toDateTimeString(),
             'created_at' => $user->created_at?->toDateTimeString(),
+            
         ];
     }
 }
