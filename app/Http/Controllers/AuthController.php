@@ -11,6 +11,7 @@ use App\Http\Requests\Auth\ResendVerificationCodeRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Requests\Auth\VerifyResetPasswordCodeRequest;
 use App\Http\Requests\Auth\VerifyEmailRequest;
+use App\Http\Requests\LogoutRequest as RequestsLogoutRequest;
 use App\Http\Resources\AuthResource;
 use App\Http\Resources\ResetPasswordTokenResource;
 use App\Models\User;
@@ -57,7 +58,7 @@ class AuthController extends Controller
     /**
      * Revoke the current authenticated user's access token.
      */
-    public function logout(LogoutRequest $request): JsonResponse
+    public function logout(RequestsLogoutRequest $request): JsonResponse
     {
         /** @var User $user */
         $user = $request->user();
@@ -95,7 +96,7 @@ class AuthController extends Controller
     {
         $result = $this->authService->resetPassword($request->validated());
         return ApiResponse::success(
-            null,
+            $result,
             __('messages.password_reset_success'),
             
         );

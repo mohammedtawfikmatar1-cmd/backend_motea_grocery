@@ -22,4 +22,22 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
+         $exceptions->render(function (AuthenticationException $e, Request $request) {
+        if ($request->expectsJson()) {
+            return ApiResponse::unauthenticated(); // ← 401
+        }
+        
+    });
+     $exceptions->render(function (ModelNotFoundException $e, Request $request) {
+        if ($request->expectsJson()) {
+            return ApiResponse::notFound(); // ← 404
+        }
+    });
+    
+    // $exceptions->render(function (Throwable $e, Request $request) {
+    //     if ($request->expectsJson()) {
+    //         return ApiResponse::serverError(); // ← 500
+    //     }
+    // });
+    
     })->create();

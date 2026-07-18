@@ -17,6 +17,7 @@ abstract class ApiFormRequest extends FormRequest
         throw new HttpResponseException(
             ApiResponse::validation($validator->errors()->toArray())
         );
+        
     }
 
     /**
