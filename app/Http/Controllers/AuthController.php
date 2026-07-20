@@ -58,7 +58,7 @@ class AuthController extends Controller
     /**
      * Revoke the current authenticated user's access token.
      */
-    public function logout(RequestsLogoutRequest $request): JsonResponse
+    public function logout(LogoutRequest $request): JsonResponse
     {
         /** @var User $user */
         $user = $request->user();

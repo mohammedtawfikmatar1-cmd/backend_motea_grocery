@@ -78,7 +78,7 @@ class AuthService
     {
         $user = $this->findUserByEmail((string) $data['email']);
 
-        if (! $user instanceof User || ! $this->hasher->check((string) $data['password'], $user->password)) {
+        if (! $user instanceof User || ! $this->hasher->check((string) $data['password'], $user->password) || ! $user->is_approved) {
             throw new AuthenticationException($this->translator->get('auth.failed'));
         }
 
